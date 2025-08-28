@@ -1,35 +1,44 @@
-import React, { useState } from 'react';
+import React, { useState } from "react";
 
 interface SignUpProps {
-  onSignUp: () => void;
+  onSignUp: (role: "student" | "teacher") => void;
   onSwitchToLogin: () => void;
 }
 
 const SignUp: React.FC<SignUpProps> = ({ onSignUp, onSwitchToLogin }) => {
-  const [fullName, setFullName] = useState('');
-  const [email, setEmail] = useState('');
-  const [password, setPassword] = useState('');
+  const [fullName, setFullName] = useState("");
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
+  const [role, setRole] = useState<"student" | "teacher">("student");
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
 
+    if (role === "teacher") {
+      // 🚀 Skip DB for teacher
+      alert("Teacher signup - skipping DB!");
+      onSignUp("teacher");
+      return;
+    }
+
     try {
-      const response = await fetch('http://localhost:5000/api/auth/signup', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ fullName, email, password }),
+      const response = await fetch("http://localhost:1234/api/auth/signup", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        credentials: "include",
+        body: JSON.stringify({ fullName, email, password, role }),
       });
 
       const data = await response.json();
 
       if (response.ok) {
-        alert('Registration successful!');
-        onSignUp();
+        alert("Registration successful!");
+        onSignUp("student");
       } else {
-        alert(data.message || 'Registration failed');
+        alert(data.message || "Registration failed");
       }
     } catch (error) {
-      alert('Server error during registration');
+      alert("Server error during registration");
       console.error(error);
     }
   };
@@ -37,47 +46,50 @@ const SignUp: React.FC<SignUpProps> = ({ onSignUp, onSwitchToLogin }) => {
   return (
     <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-indigo-100 via-white to-purple-100 px-4">
       <div className="bg-white p-8 rounded-2xl shadow-xl w-full max-w-md">
-        <h2 className="text-3xl font-bold text-center text-purple-600 mb-2">Create Account</h2>
+        <h2 className="text-3xl font-bold text-center text-purple-600 mb-2">
+          Create Account
+        </h2>
         <p className="text-sm text-gray-600 text-center mb-6">
           Join KnowledgeHub to start solving your academic doubts.
         </p>
 
         <form className="space-y-4" onSubmit={handleSubmit}>
-          <div>
-            <label className="block text-sm text-gray-700 mb-1">Full Name</label>
-            <input
-              type="text"
-              placeholder="John Doe"
-              value={fullName}
-              onChange={(e) => setFullName(e.target.value)}
-              className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-400 focus:outline-none"
-              required
-            />
-          </div>
+          <input
+            type="text"
+            placeholder="Full Name"
+            value={fullName}
+            onChange={(e) => setFullName(e.target.value)}
+            className="w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-purple-400"
+            required
+          />
 
-          <div>
-            <label className="block text-sm text-gray-700 mb-1">Email Address</label>
-            <input
-              type="email"
-              placeholder="you@example.com"
-              value={email}
-              onChange={(e) => setEmail(e.target.value)}
-              className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-400 focus:outline-none"
-              required
-            />
-          </div>
+          <input
+            type="email"
+            placeholder="Email Address"
+            value={email}
+            onChange={(e) => setEmail(e.target.value)}
+            className="w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-purple-400"
+            required
+          />
 
-          <div>
-            <label className="block text-sm text-gray-700 mb-1">Password</label>
-            <input
-              type="password"
-              placeholder="••••••••"
-              value={password}
-              onChange={(e) => setPassword(e.target.value)}
-              className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-400 focus:outline-none"
-              required
-            />
-          </div>
+          <input
+            type="password"
+            placeholder="Password"
+            value={password}
+            onChange={(e) => setPassword(e.target.value)}
+            className="w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-purple-400"
+            required
+          />
+
+          {/* Role Selection */}
+          <select
+            value={role}
+            onChange={(e) => setRole(e.target.value as "student" | "teacher")}
+            className="w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-purple-400"
+          >
+            <option value="student">Student</option>
+            <option value="teacher">Teacher</option>
+          </select>
 
           <button
             type="submit"
@@ -87,7 +99,7 @@ const SignUp: React.FC<SignUpProps> = ({ onSignUp, onSwitchToLogin }) => {
           </button>
 
           <p className="text-sm text-center text-gray-600 mt-4">
-            Already have an account?{' '}
+            Already have an account?{" "}
             <button
               type="button"
               onClick={onSwitchToLogin}

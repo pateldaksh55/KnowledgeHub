@@ -1,10 +1,20 @@
-import React, { useState, useRef, useEffect } from 'react';
-import { Send, Bot, User, BookOpen, Calculator, Lightbulb, Clock, ArrowLeft } from 'lucide-react';
-import { useNavigate } from 'react-router-dom';
+import React, { useState, useRef, useEffect } from "react";
+import {
+  Send,
+  Bot,
+  User,
+  BookOpen,
+  Calculator,
+  Lightbulb,
+  Clock,
+  ArrowLeft,
+} from "lucide-react";
+import { useNavigate } from "react-router-dom";
+import ReactMarkdown from "react-markdown";
 
 interface Message {
   id: string;
-  type: 'user' | 'ai';
+  type: "user" | "ai";
   content: string;
   timestamp: Date;
 }
@@ -12,77 +22,95 @@ interface Message {
 const AIChat: React.FC = () => {
   const [messages, setMessages] = useState<Message[]>([
     {
-      id: '1',
-      type: 'ai',
+      id: "1",
+      type: "ai",
       content:
-        "Hello! I'm your AI study assistant. I can help you with math, science, literature, and many other subjects. What would you like to learn about today?",
-      timestamp: new Date()
-    }
+        "Hello! I'm your AI study assistant. I can help you with **math**, *science*, literature, and many other subjects.\n\n- Try asking me to `solve an equation`\n- Or request a **study plan** 📚",
+      timestamp: new Date(),
+    },
   ]);
-  const [inputMessage, setInputMessage] = useState('');
+  const [inputMessage, setInputMessage] = useState("");
   const [isTyping, setIsTyping] = useState(false);
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const navigate = useNavigate();
 
   const quickActions = [
-    { icon: Calculator, text: 'Solve Math Problem', color: 'from-blue-500 to-blue-600' },
-    { icon: BookOpen, text: 'Explain Concept', color: 'from-green-500 to-green-600' },
-    { icon: Lightbulb, text: 'Get Study Tips', color: 'from-purple-500 to-purple-600' },
-    { icon: Clock, text: 'Create Study Plan', color: 'from-orange-500 to-orange-600' }
+    {
+      icon: Calculator,
+      text: "Solve Math Problem",
+      color: "from-blue-500 to-blue-600",
+    },
+    {
+      icon: BookOpen,
+      text: "Explain Concept",
+      color: "from-green-500 to-green-600",
+    },
+    {
+      icon: Lightbulb,
+      text: "Get Study Tips",
+      color: "from-purple-500 to-purple-600",
+    },
+    {
+      icon: Clock,
+      text: "Create Study Plan",
+      color: "from-orange-500 to-orange-600",
+    },
   ];
 
   const scrollToBottom = () => {
-    messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
+    messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
   };
 
   useEffect(() => {
     scrollToBottom();
   }, [messages]);
 
-  const simulateAIResponse = (userMessage: string): string => {
-    const responses = {
-      math: "I'd be happy to help you with math! Could you please share the specific problem you're working on?",
-      science: "Science is fascinating! What specific topic are you curious about?",
-      study: "Here are some effective study tips: use spaced repetition, teach others, and take breaks.",
-      default: "That's interesting! Could you tell me more about what you'd like help with?"
-    };
-
-    const lowerMessage = userMessage.toLowerCase();
-    if (lowerMessage.includes('math') || lowerMessage.includes('equation') || lowerMessage.includes('calculate')) {
-      return responses.math;
-    } else if (lowerMessage.includes('science') || lowerMessage.includes('physics') || lowerMessage.includes('chemistry')) {
-      return responses.science;
-    } else if (lowerMessage.includes('study') || lowerMessage.includes('tips') || lowerMessage.includes('help')) {
-      return responses.study;
-    }
-    return responses.default;
-  };
-
-  const sendMessage = () => {
+  const sendMessage = async () => {
     if (!inputMessage.trim()) return;
 
     const userMessage: Message = {
       id: Date.now().toString(),
-      type: 'user',
+      type: "user",
       content: inputMessage,
-      timestamp: new Date()
+      timestamp: new Date(),
     };
 
-    setMessages(prev => [...prev, userMessage]);
-    setInputMessage('');
+    setMessages((prev) => [...prev, userMessage]);
+    setInputMessage("");
     setIsTyping(true);
 
-    setTimeout(() => {
+    try {
+      const res = await fetch("http://localhost:1234/api/chat", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ message: userMessage.content }),
+      });
+
+      const data = await res.json();
+
       const aiResponse: Message = {
         id: (Date.now() + 1).toString(),
-        type: 'ai',
-        content: simulateAIResponse(inputMessage),
-        timestamp: new Date()
+        type: "ai",
+        content: data.reply || "Sorry, I couldn’t process that.",
+        timestamp: new Date(),
       };
 
-      setMessages(prev => [...prev, aiResponse]);
+      setMessages((prev) => [...prev, aiResponse]);
+    } catch (err) {
+      console.error("Chat error:", err);
+
+      setMessages((prev) => [
+        ...prev,
+        {
+          id: (Date.now() + 2).toString(),
+          type: "ai",
+          content: "⚠️ Something went wrong. Please try again later.",
+          timestamp: new Date(),
+        },
+      ]);
+    } finally {
       setIsTyping(false);
-    }, 1500);
+    }
   };
 
   const handleQuickAction = (text: string) => {
@@ -102,8 +130,12 @@ const AIChat: React.FC = () => {
 
         {/* Page Header */}
         <div className="text-center mb-8">
-          <h1 className="text-4xl font-bold text-gray-900 mb-2">AI Chat Assistant</h1>
-          <p className="text-lg text-gray-600">Get instant help with your studies, available 24/7</p>
+          <h1 className="text-4xl font-bold text-gray-900 mb-2">
+            AI Chat Assistant
+          </h1>
+          <p className="text-lg text-gray-600">
+            Get instant help with your studies, available 24/7
+          </p>
         </div>
 
         {/* Chat Box */}
@@ -143,25 +175,46 @@ const AIChat: React.FC = () => {
             {messages.map((msg) => (
               <div
                 key={msg.id}
-                className={`flex items-start space-x-3 ${msg.type === 'user' ? 'flex-row-reverse space-x-reverse' : ''}`}
+                className={`flex items-start space-x-3 ${
+                  msg.type === "user"
+                    ? "flex-row-reverse space-x-reverse"
+                    : ""
+                }`}
               >
                 <div
                   className={`w-8 h-8 rounded-full flex items-center justify-center ${
-                    msg.type === 'user'
-                      ? 'bg-gradient-to-r from-blue-500 to-indigo-600'
-                      : 'bg-gradient-to-r from-green-500 to-emerald-600'
+                    msg.type === "user"
+                      ? "bg-gradient-to-r from-blue-500 to-indigo-600"
+                      : "bg-gradient-to-r from-green-500 to-emerald-600"
                   }`}
                 >
-                  {msg.type === 'user' ? <User className="h-4 w-4 text-white" /> : <Bot className="h-4 w-4 text-white" />}
+                  {msg.type === "user" ? (
+                    <User className="h-4 w-4 text-white" />
+                  ) : (
+                    <Bot className="h-4 w-4 text-white" />
+                  )}
                 </div>
                 <div
-                  className={`max-w-md p-4 rounded-2xl ${
-                    msg.type === 'user' ? 'bg-blue-500 text-white' : 'bg-gray-100 text-gray-900'
+                  className={`max-w-md p-4 rounded-2xl prose prose-sm max-w-none ${
+                    msg.type === "user"
+                      ? "bg-blue-500 text-white"
+                      : "bg-gray-100 text-gray-900"
                   }`}
                 >
-                  <p className="text-sm leading-relaxed">{msg.content}</p>
-                  <p className={`text-xs mt-2 ${msg.type === 'user' ? 'text-blue-100' : 'text-gray-500'}`}>
-                    {msg.timestamp.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                  {/* Markdown rendering */}
+                  <ReactMarkdown>{msg.content}</ReactMarkdown>
+
+                  <p
+                    className={`text-xs mt-2 ${
+                      msg.type === "user"
+                        ? "text-blue-100"
+                        : "text-gray-500"
+                    }`}
+                  >
+                    {msg.timestamp.toLocaleTimeString([], {
+                      hour: "2-digit",
+                      minute: "2-digit",
+                    })}
                   </p>
                 </div>
               </div>
@@ -193,7 +246,7 @@ const AIChat: React.FC = () => {
                 onChange={(e) => setInputMessage(e.target.value)}
                 placeholder="Ask me anything about your studies..."
                 className="flex-1 px-4 py-3 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500"
-                onKeyDown={(e) => e.key === 'Enter' && sendMessage()}
+                onKeyDown={(e) => e.key === "Enter" && sendMessage()}
               />
               <button
                 onClick={sendMessage}
