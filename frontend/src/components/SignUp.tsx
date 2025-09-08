@@ -14,13 +14,6 @@ const SignUp: React.FC<SignUpProps> = ({ onSignUp, onSwitchToLogin }) => {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
 
-    if (role === "teacher") {
-      // 🚀 Skip DB for teacher
-      alert("Teacher signup - skipping DB!");
-      onSignUp("teacher");
-      return;
-    }
-
     try {
       const response = await fetch("http://localhost:1234/api/auth/signup", {
         method: "POST",
@@ -33,7 +26,7 @@ const SignUp: React.FC<SignUpProps> = ({ onSignUp, onSwitchToLogin }) => {
 
       if (response.ok) {
         alert("Registration successful!");
-        onSignUp("student");
+        onSignUp(role);
       } else {
         alert(data.message || "Registration failed");
       }

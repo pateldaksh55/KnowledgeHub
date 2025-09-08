@@ -4,7 +4,7 @@ import Groq from "groq-sdk";
 const router = express.Router();
 
 const client = new Groq({
-  apiKey: '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',
+  apiKey: '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', // Update with your actual key
 });
 
 router.post("/", async (req, res) => {
@@ -12,7 +12,7 @@ router.post("/", async (req, res) => {
     const { message } = req.body;
 
     const chatCompletion = await client.chat.completions.create({
-      model: "llama3-70b-8192", // free Groq model
+      model: "llama-3.3-70b-versatile", // updated to supported model
       messages: [
         { role: "system", content: "You are a helpful AI tutor." },
         { role: "user", content: message },

@@ -13,13 +13,6 @@ const Login: React.FC<LoginProps> = ({ onLogin, onSwitchToSignUp }) => {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
 
-    if (role === "teacher") {
-      // 🚀 Skip DB for teacher
-      alert("Teacher login - skipping DB!");
-      onLogin("teacher");
-      return;
-    }
-
     try {
       const response = await fetch("http://localhost:1234/api/auth/login", {
         method: "POST",
@@ -32,7 +25,7 @@ const Login: React.FC<LoginProps> = ({ onLogin, onSwitchToSignUp }) => {
 
       if (response.ok) {
         alert("Login successful!");
-        onLogin("student");
+        onLogin(role);
       } else {
         alert(data.message || "Login failed");
       }

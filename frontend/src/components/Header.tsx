@@ -2,7 +2,7 @@ import React, { useState } from "react";
 import { GraduationCap, Menu, X, User, LogOut } from "lucide-react";
 
 type ActiveSection =
-  | "home"
+  | "/"
   | "live-tutoring"
   | "ai-chat"
   | "study-materials"
@@ -27,7 +27,7 @@ const Header: React.FC<HeaderProps> = ({
   const [isMenuOpen, setIsMenuOpen] = useState(false);
 
   const navItems = [
-    { id: "home", label: "Home" },
+    { id: "/", label: "Home" },
     { id: "live-tutoring", label: "Live Tutoring" },
     { id: "ai-chat", label: "AI Chat" },
     { id: "study-materials", label: "Study Materials" },
@@ -40,7 +40,7 @@ const Header: React.FC<HeaderProps> = ({
           {/* Logo */}
           <div
             className="flex items-center space-x-2 cursor-pointer group"
-            onClick={() => onNavigate("home")}
+            onClick={() => onNavigate("/")}
           >
             <div className="p-2 bg-gradient-to-r from-blue-600 to-purple-600 rounded-lg group-hover:scale-105 transition-transform">
               <GraduationCap className="h-6 w-6 text-white" />
